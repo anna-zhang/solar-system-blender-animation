@@ -1,6 +1,33 @@
 import bpy
 import math
 
+class Satellite:
+  def __init__(self, name, radius, distance_from_sun, object):
+    self.name = name # name of the satellite (integer identifier)
+    self.radius = radius # radius of the satellite
+    self.distance_from_sun = distance_from_sun # the starting distance of the satellite from the Sun
+    self.object = object # reference to the satellite Blender object, None at first
+
+# initialize satellites in solar system
+satellite1 = Satellite("1", 1, 26, None)
+satellite2 = Satellite("2", 1, 44, None)
+
+class Planet:
+  def __init__(self, name, radius, distance_from_sun, object, satellites):
+    self.name = name # name of the planet (integer identifier)
+    self.radius = radius # radius of the planet
+    self.distance_from_sun = distance_from_sun # the distance of the planet from the Sun
+    self.object = object # reference to the planet Blender object, None at first
+    self.satellites = satellites # list of Satellites that orbit this planet
+
+# initialize planets in solar system
+planet1 = Planet("1", 2, 20, None, [satellite1])
+planet2 = Planet("2", 2, 40, None, [satellite2])
+
+# all of the planets in this solar system
+all_planets_data = [planet1, planet2]
+
+
 # obj_radius is the radius of the celestial object
 # orbit_radius is the distance of the celestial object from the center it is orbiting around
 # name is the identification name of the celestial object
@@ -11,16 +38,17 @@ def create_celestial_obj(obj_radius, orbit_radius, name):
     return bpy.context.object # return reference to the celestial object
     
 
-# num_planets is the number of planets orbiting the Sun in this solar system
-def create_planets(num_planets):
+# create planet objects from the list of Planets data
+def create_planets(planet_data):
     planets = [] # save all planet objects
-    for i in range(num_planets):
-        new_planet = create_celestial_obj(2, 20 * (i + 1), "Planet." + str(i)) # create a new planet object
-        set_planet_orbit(new_planet, (i + 1) * 1.5) # set the orbit animation of the new planet object
+    for planet in planet_data:
+        new_planet = create_celestial_obj(planet.radius, planet.distance_from_sun, "Planet." + planet.name) # create a new planet object
+        set_planet_orbit(new_planet, int(planet.name) * 1.5) # set the orbit animation of the new planet object
+        planet.object = new_planet # store reference to created planet object
         planets.append(new_planet) # save the planet object in the list of planet objects
     return planets    
 
-
+# sets the planet object's animation with speed determined by num_orbits done between start to end frame
 def set_planet_orbit(planet, num_orbits):
     scene.cursor.location = (0.0, 0.0, 0.0)  # snap cursor to world origin at (0.0, 0.0, 0.0) so the orbits are around the world origin
     bpy.ops.object.empty_add(type='PLAIN_AXES',radius=10.0,location=scene.cursor.location) # create an empty at the world origin for the planet to rotate with
@@ -42,7 +70,7 @@ def set_planet_orbit(planet, num_orbits):
     return
 
 
-# set the orbit animation for a given satellite around a given planet
+# set the orbit animation for a given satellite object around a given planet object
 def set_satellite_orbit(satellite, planet):
     print("planet.location: " + str(planet.location))
     print("satellite.location: " + str(satellite.location))
@@ -67,12 +95,15 @@ def set_satellite_orbit(satellite, planet):
         point.interpolation = "LINEAR" # set the animation curve's interpolation type to linear for constant speed orbit
     return
         
-        
-def create_satellites(num_satellites, planets):
+
+# create the satellites orbiting the Planets in the solar system     
+def create_satellites(planets):
     satellites = [] # save all satellite objects
-    for i in range(num_satellites):
-        new_satellite = create_celestial_obj(1, 26 * (i + 1), "Satellite." + str(i)) # create a new satellite object
-        set_satellite_orbit(new_satellite, planets[0]) # set satellite orbit animation around the planet
+    for planet in planets:
+        for satellite in planet.satellites:
+            new_satellite = create_celestial_obj(satellite.radius, satellite.distance_from_sun, "Satellite." + satellite.name) # create a new satellite object
+        set_satellite_orbit(new_satellite, planet.object) # set satellite orbit animation around the planet
+        satellite.object = new_satellite # store reference to created planet object
         satellites.append(new_satellite) # save the satellite object in the list of satellite objects
     return 
 
@@ -85,5 +116,5 @@ scene = bpy.context.scene
 scene.frame_start = start_frame_num
 scene.frame_end = end_frame_num
 scene.frame_current = start_frame_num
-planets = create_planets(2)
-create_satellites(1, planets)
+planets = create_planets(all_planets_data)
+create_satellites(all_planets_data)
