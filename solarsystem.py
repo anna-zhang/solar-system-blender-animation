@@ -89,6 +89,17 @@ def set_satellite_orbit(satellite, speed, planet):
     satellite_orbit_empty.parent = planet # make the planet the parent of the empty that the satellite is the child of
     satellite_orbit_empty.matrix_parent_inverse = planet.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
     
+    # create torus to see the orbit path of the satellite
+    torus_radius = 0.2 # how thick the torus is
+    bpy.ops.mesh.primitive_torus_add(align='WORLD', location=planet.location, rotation=(0.0, 0.0, 0.0), major_segments=48, minor_segments=12, mode='MAJOR_MINOR', major_radius=(abs(satellite.location[0] - planet.location[0]) - (torus_radius / 2.0)), minor_radius=torus_radius) # create torus object
+    
+    satellite_orbit_path = bpy.context.object # save reference to the satellite orbit path torus object
+    bpy.context.object.name = "Torus-" + satellite.name + "-" + planet.name + "-orbit" # change the name of the empty
+
+    # make the torus follow the orbit
+    satellite_orbit_path.parent = satellite_orbit_empty # make the empty the parent of the satellite
+    satellite_orbit_path.matrix_parent_inverse = satellite_orbit_empty.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
+    
     # ROTATE THE EMPTY
     satellite_orbit_empty.animation_data_create() # create animation data for the satellite
     satellite_orbit_empty.animation_data.action = bpy.data.actions.new(name=(satellite.name + "-orbit")) # bpy.data.actions holds all of the actions in the scenes
