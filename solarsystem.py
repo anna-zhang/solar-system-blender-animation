@@ -10,8 +10,10 @@ class Satellite:
     self.object = object # reference to the satellite Blender object, None at first
 
 # initialize satellites in solar system
-satellite1 = Satellite("1", 1, 26, 2, None)
+satellite1 = Satellite("1", 1, 24, 2, None)
 satellite2 = Satellite("2", 1, 44, 2, None)
+satellite3 = Satellite("3", 1, 48, 3, None)
+satellite4 = Satellite("4", 0.5, 66, 1.5, None)
 
 class Planet:
   def __init__(self, name, radius, distance_from_sun, orbital_speed, object, satellites):
@@ -23,11 +25,13 @@ class Planet:
     self.satellites = satellites # list of Satellites that orbit this planet
 
 # initialize planets in solar system
-planet1 = Planet("1", 2, 20, 3, None, [satellite1])
-planet2 = Planet("2", 2, 40, 1, None, [satellite2])
+planet1 = Planet("1", 1.5, 20, 2.25, None, [satellite1])
+planet2 = Planet("2", 2, 40, 1.75, None, [satellite2, satellite3])
+planet3 = Planet("3", 3, 55, 1.25, None, [])
+planet4 = Planet("4", 2.5, 70, 1, None, [satellite4])
 
 # all of the planets in this solar system
-all_planets_data = [planet1, planet2]
+all_planets_data = [planet1, planet2, planet3, planet4]
 
 
 # obj_radius is the radius of the celestial object
@@ -118,5 +122,6 @@ scene = bpy.context.scene
 scene.frame_start = start_frame_num
 scene.frame_end = end_frame_num
 scene.frame_current = start_frame_num
+create_celestial_obj(8, 0, "Sun") # create the Sun
 planets = create_planets(all_planets_data)
 create_satellites(all_planets_data)
