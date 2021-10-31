@@ -63,6 +63,17 @@ def set_planet_orbit(planet, num_orbits):
     planet.parent = planet_orbit_empty # make the empty the parent of the planet
     planet.matrix_parent_inverse = planet_orbit_empty.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
     
+    # create torus to see the orbit path of the planet around the Sun
+    torus_radius = 0.2 # how thick the torus is
+    bpy.ops.mesh.primitive_torus_add(align='WORLD', location=(0.0, 0.0, 0.0), rotation=(0.0, 0.0, 0.0), major_segments=48, minor_segments=12, mode='MAJOR_MINOR', major_radius=(abs(planet.location[0]) - (torus_radius / 2.0)), minor_radius=torus_radius) # create torus object centered around Sun (world origin)
+    
+    planet_orbit_path = bpy.context.object # save reference to the satellite orbit path torus object
+    bpy.context.object.name = "Torus-" + planet.name + "-Sun-orbit" # change the name of the empty
+
+    # make the torus follow the orbit
+    planet_orbit_path.parent = planet_orbit_empty # make the empty the parent of the torus
+    planet_orbit_path.matrix_parent_inverse = planet_orbit_empty.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
+    
     # ROTATE THE EMPTY
     planet_orbit_empty.animation_data_create() # create animation data for the planet
     planet_orbit_empty.animation_data.action = bpy.data.actions.new(name=(planet.name + "-orbit"))  # bpy.data.actions holds all of the actions in the scenes
@@ -97,7 +108,7 @@ def set_satellite_orbit(satellite, speed, planet):
     bpy.context.object.name = "Torus-" + satellite.name + "-" + planet.name + "-orbit" # change the name of the empty
 
     # make the torus follow the orbit
-    satellite_orbit_path.parent = satellite_orbit_empty # make the empty the parent of the satellite
+    satellite_orbit_path.parent = satellite_orbit_empty # make the empty the parent of the torus
     satellite_orbit_path.matrix_parent_inverse = satellite_orbit_empty.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
     
     # ROTATE THE EMPTY
