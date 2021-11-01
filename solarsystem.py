@@ -43,6 +43,23 @@ def create_celestial_obj(obj_radius, orbit_radius, name):
     bpy.ops.object.shade_smooth() # make the celestial object smooth
     return bpy.context.object # return reference to the celestial object
     
+# rotate the planet on its axis
+def set_planet_rotation(planet):
+    # create animation data for the planet
+    planet.animation_data_create()
+
+    # bpy.data.actions holds all of the actions in the scenes
+    planet.animation_data.action = bpy.data.actions.new(name=("PlanetRotation." + str(planet.name)))
+
+    # fcurves: https://docs.blender.org/manual/en/latest/editors/graph_editor/fcurves/introduction.html
+    planet_fcurve = planet.animation_data.action.fcurves.new(data_path="rotation_euler", index=2) # rotation z
+
+    start_kf = planet_fcurve.keyframe_points.insert(frame=start_frame_num, value=0) # add animation start point
+    end_kf = planet_fcurve.keyframe_points.insert(frame=end_frame_num, value=(3 * 2 * math.pi)) # add animation end point; value = 2*pi for one full rotation
+    for point in planet_fcurve.keyframe_points:
+        point.interpolation = "LINEAR" # set the animation curve's interpolation type to linear for constant speed orbit 
+    return planet
+
 
 # create planet objects from the list of Planets data
 def create_planets(planet_data):
@@ -50,6 +67,7 @@ def create_planets(planet_data):
     for planet in planet_data:
         new_planet = create_celestial_obj(planet.radius, planet.distance_from_sun, "Planet." + planet.name) # create a new planet object
         set_planet_orbit(new_planet, planet.orbital_speed) # set the orbit animation of the new planet object
+        set_planet_rotation(new_planet) # rotate planet
         planet.object = new_planet # store reference to created planet object
         planets.append(new_planet) # save the planet object in the list of planet objects
     return planets    
@@ -71,7 +89,7 @@ def set_planet_orbit(planet, num_orbits):
     bpy.context.object.name = "Torus-" + planet.name + "-Sun-orbit" # change the name of the empty
 
     # make the torus follow the orbit
-    planet_orbit_path.parent = planet_orbit_empty # make the empty the parent of the torus
+    planet_orbit_path.parent = planet_orbit_empty # make the empty the parent of the satellite
     planet_orbit_path.matrix_parent_inverse = planet_orbit_empty.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
     
     # ROTATE THE EMPTY
@@ -108,7 +126,7 @@ def set_satellite_orbit(satellite, speed, planet):
     bpy.context.object.name = "Torus-" + satellite.name + "-" + planet.name + "-orbit" # change the name of the empty
 
     # make the torus follow the orbit
-    satellite_orbit_path.parent = satellite_orbit_empty # make the empty the parent of the torus
+    satellite_orbit_path.parent = satellite_orbit_empty # make the empty the parent of the satellite
     satellite_orbit_path.matrix_parent_inverse = satellite_orbit_empty.matrix_world.inverted() # assign parent relationship while keeping the transform; get rid of the initial parent's transformation effect on the child when setting the parent-child relationship 
     
     # ROTATE THE EMPTY
@@ -136,7 +154,7 @@ def create_satellites(planets):
     return 
 
 
-# Test
+# Set up scene
 start_frame_num = 1
 end_frame_num = 240
 
